@@ -1,7 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'Form.dart';
+import 'package:mente_sa/models/user.dart';
+import 'package:mente_sa/provider/users.dart';
+import 'package:provider/provider.dart';
+
+import '../views/Form.dart';
 
 void main() {
   runApp(MyApp());
@@ -34,14 +38,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final _form = GlobalKey<FormState>();
+  bool _isLoading = false;
+
   TextEditingController _name = TextEditingController();
 
+  final Map<String, String> _formData = {};
+
+  void _loadFormData(User user) {
+    if (user != null) {
+      _formData['id'] = user.id;
+      _formData['name'] = user.name;
+      _formData['email'] = user.email;
+      _formData['avatarUrl'] = user.avatarUrl;
+    }
+  }
+
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final User user = ModalRoute.of(context).settings.arguments;
+    _loadFormData(user);
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      resizeToAvoidBottomPadding: false,
-      body: Container(
+
+      body: _isLoading 
+      ? Center(child: CircularProgressIndicator())
+      :Container(
         height: double.infinity,
         width: double.infinity,
         decoration: BoxDecoration(
@@ -103,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (_name.isEmpty) {
                         return 'Nos fale seu nome...';
                       }
-                      return null;
+                      return _name;
                     },
                   ),
                 ),
@@ -116,7 +142,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
+                    final isValid = _form.currentState.validate();
+
+                    if (isValid) {
+                      _form.currentState.save();
+                      setState(() {
+                        _isLoading = true;
+                      });
+
+                      await Provider.of<Users>(context, listen: false).put(
+                        User(
+                          id: _formData['id'],
+                          name: _formData['name'],
+                          email: _formData['email'],
+                          avatarUrl: _formData['avatarUrl'],
+                        ),
+                      );
+
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -132,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

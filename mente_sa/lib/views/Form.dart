@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'Results.dart';
+import '../views/Results.dart';
 
 void main() => runApp(MainApp());
 
@@ -183,6 +183,7 @@ class _FormPageState extends State<FormPage> {
                       MaterialPageRoute(
                         builder: (context) => ResultsPage(
                           nameProfessional: nameProfessional,
+                          
                         ),
                       ),
                     );
